@@ -152,7 +152,7 @@ fun MazeScreen(navController: NavHostController, width: Int, height: Int) {
 
                         // Draw right wall if no connection to the right
                         if (x != (mazeWidth - 1)) {
-                            if (!generatedMaze.connections.contains(Connection(square, rightSquare))) {
+                            if (!(generatedMaze.connections.contains(Connection(square, rightSquare)) || generatedMaze.connections.contains(Connection(rightSquare, square)))) {
                                 canvas.drawLine(
                                     p1 = Offset(padding + (x + 1) * cellSize, padding + y * cellSize),
                                     p2 = Offset(padding + (x + 1) * cellSize, padding + (y + 1) * cellSize),
@@ -163,7 +163,7 @@ fun MazeScreen(navController: NavHostController, width: Int, height: Int) {
 
                         // Draw bottom wall if no connection to the bottom
                         if (y != (mazeHeight - 1)) {
-                            if (!generatedMaze.connections.contains(Connection(square, bottomSquare))) {
+                            if (!(generatedMaze.connections.contains(Connection(square, bottomSquare)) || generatedMaze.connections.contains(Connection(bottomSquare, square)))) {
                                 canvas.drawLine(
                                     p1 = Offset(padding + x * cellSize, padding + (y + 1) * cellSize),
                                     p2 = Offset(padding + (x + 1) * cellSize, padding + (y + 1) * cellSize),
