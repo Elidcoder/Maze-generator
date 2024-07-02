@@ -6,23 +6,25 @@ class Path(previousPath: List<Square>){
 
     private val path = ArrayDeque<Square>(previousPath)
 
-    fun currentSquare(): Square {
-        TODO()
-    }
+    fun currentSquare(): Square =
+        if (hasElements())
+            path.peek() as Square
+        else
+            throw ArrayIndexOutOfBoundsException("Tried to peek on empty path")
 
-    fun backtrack(): Square {
-        TODO()
-    }
+    fun backtrack(): Square =
+        if (hasElements())
+            path.pop()
+        else
+            throw ArrayIndexOutOfBoundsException("Tried to pops on empty path")
 
-    fun addSquare(square: Square) {
-        TODO()
-    }
+    fun addSquare(square: Square) = path.add(square)
 
-    fun hasElements(): Boolean {
-        TODO()
-    }
+    fun hasElements(): Boolean = path.isNotEmpty()
 
     fun createBranchTo(newSquare: Square): Path {
-        TODO()
+        val branch = Path(path.toList())
+        branch.addSquare(newSquare)
+        return branch
     }
 }
