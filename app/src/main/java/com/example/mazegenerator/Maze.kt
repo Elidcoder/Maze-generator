@@ -6,22 +6,40 @@ typealias Square = Int
 typealias Connection = Pair<Square, Square>
 
 const val startingSquare = 0
-const val MAXHEIGHT = 100
-const val MAXWIDTH = 100
+const val MAXHEIGHT = 50
+const val MAXWIDTH = 25
 const val BRANCHPERCENT = 10
 
 fun verifyDimensions(height: Int?, width: Int?): Boolean{
     return height != null && height in 1..MAXHEIGHT && width != null && width in 1.. MAXWIDTH
 }
 
-class Maze(private val width: Int, private val height: Int) {
+class Maze(val width: Int, val height: Int) {
     private val mazeSize = width * height
-    private var connections = mutableListOf<Connection>()
+    var connections = mutableListOf<Connection>()
 
     init {
         require(verifyDimensions(height, width))
         {throw IllegalArgumentException("Maze dimensions ($width, $height) are invalid")}
         generateMaze()
+    }
+
+    fun getAdjacentSquares(square: Square): MutableList<Square> {
+        val availableSquares = mutableListOf<Square>()
+        if (square > 0){
+            if (square > (width - 1)){
+                availableSquares.add(square - width)
+            }
+            availableSquares.add(square - 1)
+        }
+
+        if (square < (mazeSize - 1)){
+            if (square < (mazeSize - width)){
+                availableSquares.add(square + width)
+            }
+            availableSquares.add(square + 1)
+        }
+        return availableSquares
     }
 
     private fun generateMaze() {
@@ -32,7 +50,7 @@ class Maze(private val width: Int, private val height: Int) {
         var targetConnection: Connection
 
         fun getUnvisitedConnections(currentSquare: Square, visited: Set<Int>): MutableList<Connection> {
-            val neighbours = mutableSetOf(currentSquare + 1, currentSquare - 1, currentSquare - width, currentSquare + width)
+            val neighbours = getAdjacentSquares(currentSquare)
 
             return neighbours.mapNotNull {if (visited.contains(it)) null else Connection(currentSquare, it) } as MutableList<Connection>
         }
@@ -48,14 +66,13 @@ class Maze(private val width: Int, private val height: Int) {
 
         while (visited.size < mazeSize) {
             branch = branches[Random.nextInt(branches.size)]
+            if (!branch.hasElements()){
+                branches.remove(branch)
+                continue
+            }
             possibleNeighbours = getUnvisitedConnections(branch.currentSquare(), visited)
             if (possibleNeighbours.isEmpty()) {
-                if (branch.hasElements()){
-                    branch.backtrack()
-                }
-                else{
-                    branches.remove(branch)
-                }
+                branch.backtrack()
                 continue
             }
             else if (possibleNeighbours.size > 1) {

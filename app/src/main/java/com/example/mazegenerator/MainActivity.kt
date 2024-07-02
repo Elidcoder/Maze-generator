@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
@@ -14,12 +16,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.PaintingStyle
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.navigation.*
 import androidx.navigation.compose.*
 
@@ -55,7 +69,6 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun DesignMaze(navController: NavHostController) {
-
     var height by remember { EmptyTextFieldValue() }
     var width by remember { EmptyTextFieldValue() }
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -100,33 +113,79 @@ fun DesignMaze(navController: NavHostController) {
             }
         }
     }
-
 }
 
 @Composable
 fun MazeScreen(navController: NavHostController, width: Int, height: Int) {
     val generatedMaze = Maze(width, height)
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    val paint = Paint()
+    paint.color = Color.Black
+    paint.strokeWidth = 2f
+
+    Box(modifier = Modifier.fillMaxSize()) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-            val cellSize = 50f // Size of each cell in the maze
-            val padding = 16f // Padding around the maze
+            drawIntoCanvas { canvas ->
+                val cellSize = 50f // Adjust as needed
+                val padding = 16f // Adjust padding as needed
+                val mazeWidth = generatedMaze.width
+                val mazeHeight = generatedMaze.height
 
-            // Draw maze grid
-            for (connection in generatedMaze.connections) {
-                val startX = (connection.first % width) * cellSize + padding + cellSize / 2
-                val startY = (connection.first / width) * cellSize + padding + cellSize / 2
-                val endX = (connection.second % width) * cellSize + padding + cellSize / 2
-                val endY = (connection.second / width) * cellSize + padding + cellSize / 2
-
-                drawLine(
-                    color = Color.Black,
-                    start = Offset(startX, startY),
-                    end = Offset(endX, endY),
-                    strokeWidth = 2f
+                // Draw outer borders of the maze
+                canvas.drawRect(
+                    left = padding,
+                    top = padding,
+                    right = padding + mazeWidth * cellSize,
+                    bottom = padding + mazeHeight * cellSize,
+                    paint = Paint().apply {
+                        strokeWidth = 6F
+                        color = Color.Black
+                        style = PaintingStyle.Stroke
+                    }
                 )
+
+                // Draw walls where there are no connections
+                for (y in 0 until mazeHeight) {
+                    for (x in 0 until mazeWidth) {
+                        val square = y * mazeWidth + x
+                        val rightSquare = square + 1
+                        val bottomSquare = square + mazeWidth
+
+                        // Draw right wall if no connection to the right
+                        if (x != (mazeWidth - 1)) {
+                            if (!generatedMaze.connections.contains(Connection(square, rightSquare))) {
+                                canvas.drawLine(
+                                    p1 = Offset(padding + (x + 1) * cellSize, padding + y * cellSize),
+                                    p2 = Offset(padding + (x + 1) * cellSize, padding + (y + 1) * cellSize),
+                                    paint = paint,
+                                )
+                            }
+                        }
+
+                        // Draw bottom wall if no connection to the bottom
+                        if (y != (mazeHeight - 1)) {
+                            if (!generatedMaze.connections.contains(Connection(square, bottomSquare))) {
+                                canvas.drawLine(
+                                    p1 = Offset(padding + x * cellSize, padding + (y + 1) * cellSize),
+                                    p2 = Offset(padding + (x + 1) * cellSize, padding + (y + 1) * cellSize),
+                                    paint = paint
+                                )
+                            }
+                        }
+
+                    }
+                }
             }
+        }
+
+        // Back button
+        IconButton(
+            onClick = { navController.navigateUp() },
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.BottomStart)
+                .background(Color.Transparent).border(1.dp, Color.Blue)
+        ) {
+            Icon(Icons.Filled.Close, contentDescription = "Back")
         }
     }
 }
