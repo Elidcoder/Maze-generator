@@ -1,3 +1,5 @@
+package com.example.mazegenerator
+
 import java.util.ArrayDeque
 
 class Path(previousPath: List<Square>){
